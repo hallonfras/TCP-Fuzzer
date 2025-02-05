@@ -1,6 +1,7 @@
 from scapy.all import sr1, IP, TCP 
 from response import Timeout, ConcreteResponse
-
+import re
+import time
 
 # variables used to retain last sequence/acknowledgment sent
 seqVar = 0
@@ -181,11 +182,6 @@ class Sender:
     def sendInput(self, input1, seqNr, ackNr, payload, waitTime=None):
         if waitTime is None:
             waitTime = self.waitTime
-        # add the MAC-address of the server to scapy's ARP-table to use LAN
-        # used every iteration, otherwise the entry somehow
-        # w disappears after a while
-        # conf.netcache.arp_cache[self.serverIP] = self.serverMAC
-        conf.sniff_promisc=False
 
         timeBefore = time.time()
         

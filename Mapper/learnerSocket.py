@@ -104,10 +104,10 @@ class learnerSocket:
             else:
                 c = self.data[0]
                 self.data = self.data[1:]
-                if c == '\n' or c == ' ':
+                if chr(c) == '\n' or chr(c) == ' ':
                     finished = True
                 else:
-                    inputstring = inputstring + c
+                    inputstring = inputstring + chr(c)
         return inputstring
     
     def receiveNumber(self):
@@ -127,17 +127,17 @@ class learnerSocket:
 
         while (True):
             # TODO Why is this called input1 and not just input?
-            input1 = self.receiveInput()
-            if input1 is None:
+            input = self.receiveInput()
+            if input is None:
                 print(" Learner closed socket. Closing learner socket.")
                 self.closeLearnerSocket()
-                self.establishConnectionWithLearner()
+                self.accept()
                 continue
-            print("received input " + input1)
+            print("received input " + input)
             seqNr = 0
             ackNr = 0
 
-            match(input1):
+            match(input):
                 case "reset":            
                     print("Received reset signal.")
                     self.sender.sendReset()
@@ -153,36 +153,36 @@ class learnerSocket:
                         msg = msg + " Closing only learner socket (so we are ready for a new session)"
                         print(msg)
                         self.closeLearnerSocket()
-                        self.establishConnectionWithLearner()
+                        self.accept()
                 case _:
-                    parseInput(input1)                    
+                    self.parseInput(input)                    
             
 
 
-    def parseInput(self, str: input):
+    def parseInput(self, input):
         """Parses the input string and takes the corresponding action"""
 
-        if sender.isFlags(input1):
+        if self.sender.isFlags(input):
             seqNr = self.receiveNumber()
             ackNr = self.receiveNumber()
             payload = self.receiveInput()[1:-1]
-            print(("send packet: " +input1 + " " + str(seqNr) + " " + str(ackNr)))
-            response = sender.sendInput(input1, seqNr, ackNr, payload);
-        elif "sendAction" in dir(self.sender) and self.sender.isAction(input1):
+            print(("send packet: " +input + " " + str(seqNr) + " " + str(ackNr)))
+            response = self.sender.sendInput(input, seqNr, ackNr, payload);
+        elif "sendAction" in dir(self.sender) and self.sender.isAction(input):
             # TODO this functionality seems to pertain to sending actions to the SUTAdapter, but that's been split off to a different file.
-            print(("send action: " +input1))
-            input1 = input1.lower().replace("\n","")
+            print(("send action: " +input))
+            input = input.lower().replace("\n","")
             try:
-                response = sender.sendAction(input1) # response might arrive before sender is ready
+                response = sender.sendAction(input) # response might arrive before sender is ready
             except Exception as e: 
                 print(str(e))
                 response = "BROKENPIPE"
-        elif input1 == "nil":
+        elif input == "nil":
             # TODO in what case is this used?
             print("send nothing (nil)")
             response = sender.captureResponse()
         else:
-            self.fault("invalid input " + input1)
+            self.fault("invalid input " + input)
         
         if response is not None:
             print('received ' + response.__str__() + "\n")
