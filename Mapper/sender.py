@@ -7,11 +7,11 @@ seqVar = 0
 ackVar = 0
 
 class Sender:
-"""This class contains functions for creating and sending TCP packets. It communicates with the learner via the learnerSocket class"""
-        def __init__(self, serverMAC=None, serverIP="191.168.10.1", serverPort = 7991,
-                 networkInterface="lo", networkInterfaceType=0, senderPort=15000, senderPortMinimum=20000,
-                 senderPortMaximum=40000, portNumberFile = "sn.txt", 
-                 isVerbose=0, waitTime=0.02, resetMechanism=0):
+    """This class contains functions for creating and sending TCP packets. It communicates with the learner via the learnerSocket class"""
+    def __init__(self, serverMAC=None, serverIP="191.168.10.1", serverPort = 7991,
+             networkInterface="lo", networkInterfaceType=0, senderPort=15000, senderPortMinimum=20000,
+             senderPortMaximum=40000, portNumberFile = "sn.txt", 
+             isVerbose=0, waitTime=0.02, resetMechanism=0):
         # data on sender and server needed to send packets 
         self.serverIP = serverIP
         self.serverPort = serverPort
@@ -21,14 +21,14 @@ class Sender:
         self.senderPortMinimum = senderPortMinimum
         self.senderPortMaximum = senderPortMaximum
         self.portNumberFile = portNumberFile;
-        
+
         # time to wait for a response from the server before concluding a timeout
         self.waitTime = waitTime
-        
-        
+
+
         # TODO: need to remove this, the client should decide on the reset mechanism.
         self.resetMechanism = resetMechanism
-        
+
         #set verbosity (0/1)
         self.isVerbose = isVerbose
         
@@ -124,7 +124,7 @@ class Sender:
     
 
     def checkForFlag(self, x, flagPosition):
-    """Checks if the TCP flag at the given position is set"""
+        """Checks if the TCP flag at the given position is set"""
 
         # Check if the bit is set
         if x & 2 ** flagPosition == 0:

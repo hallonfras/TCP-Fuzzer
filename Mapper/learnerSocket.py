@@ -1,5 +1,5 @@
 from time import sleep
-__author__ = 'paul,ramon'
+__author__ = 'paul,ramon,isaac'
 import socket
 from select import select
 import time
@@ -9,11 +9,13 @@ import signal
 
 class learnerSocket:
     """This class allows access to the functions from sender.py via sockets. It is used to communicate with the learner"""
+
     learnerSocket = None
     serverSocket = None
-    cmdSocket = None
     sender = None
     data = None
+
+    # Determines whether the server shutsdown when the learner closes or waits for reconnect
     continous = None
 
     def __init__(self, socketIP = 'localhost', socketPort = 18200, continuous=True):
@@ -22,29 +24,28 @@ class learnerSocket:
         self.continuous = continuous
 
     def __str__(self):
-        return "Adapter with parameters: " + str(self.__dict__)
+        return "LearnerSocket: " + str(self.__dict__)
 
-    # returns a new socket to the mapper/learner
-    #def setUpSocket(self, commPort, cmdIp, cmdPort):
-    def setUpSocket(self, commPort):
-        # create an INET, STREAMing socket
+    def listen(self, commPort):
+        """Starts listening for connections on the serversocket"""
         self.serverSocket = socket.socket(
             socket.AF_INET, socket.SOCK_STREAM)
         self.serverSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         # bind the socket to a public host and a well-known port
         self.serverSocket.bind((self.socketIP, commPort))
-        # become a server socket
+        # start listening
         self.serverSocket.listen(1)
     
-    def establishConnectionWithLearner(self):
-        # accept connections from outside
+    def accept(self):
+        """Accepts a connection to the serverSocket"""
+
         (clientSocket, address) = self.serverSocket.accept()
-        print("learner address connected: " + str(address))
+        print("Learner connected at: " + str(address))
         self.learnerSocket = clientSocket
         
-    # closes all open sockets
-    # TODO doesn't work all the time 
     def closeSockets(self):
+        """Closes all sockets, displaying eventual errors"""
+
         print(self.serverSocket)
         print(self.learnerSocket)
         try:
@@ -55,7 +56,7 @@ class learnerSocket:
             except IOError as e:
                 print("Error closing learner socket ", e)
             try:
-                print(self.serverSocket))
+                print(self.serverSocket)
                 if self.serverSocket is not None:
                     print("Closing gateway server socket")
                     self.serverSocket.close()
@@ -73,15 +74,18 @@ class learnerSocket:
             sys.exit(1)
     
     def closeLearnerSocket(self):
+        """Closes just the learner socket"""
         try:
             if self.learnerSocket is not None:
                 print("Closing local server socket")
                 self.learnerSocket.close()
         except IOError as e:
                 print("Error closing learner socket " + e)
-                
-    # reads string from socket until it reads a space/newline
+
+                    
     def receiveInput(self):
+        """Receives input from the socket, delimited by space or newline"""
+
         inputstring = '';
         finished = False
         while not finished:
@@ -107,12 +111,11 @@ class learnerSocket:
         return inputstring
     
     def receiveNumber(self):
+        """Receives input from the socket with validation to check if it's a number"""
+
         inputString = self.receiveInput()
         if inputString.isdigit() == False:
-            #if len(inputString) and inputString[1:].isdigit():
-            #    return int(inputString[1:])+2**32
-            #else:
-                self.fault("Received "+inputString + " but expected a number")
+            self.fault("Received "+ inputString + " but expected a number")
         else:
             return int(inputString)
 
@@ -121,8 +124,9 @@ class learnerSocket:
     # response, extracts the relevant parameters and sends them back to the learner
     def handleInput(self, sender):
         self.sender = sender
-        #count = 0
+
         while (True):
+            # TODO Why is this called input1 and not just input?
             input1 = self.receiveInput()
             if input1 is None:
                 print(" Learner closed socket. Closing learner socket.")
@@ -132,71 +136,80 @@ class learnerSocket:
             print("received input " + input1)
             seqNr = 0
             ackNr = 0
-            #count = (count + 1) % 1000
-            #if count == 999:
-            #    sleep(5)
-            
-            if input1 == "reset":
-                print("Received reset signal.")
-                self.sender.sendReset()
-            elif input1 == "exit":
-                msg = "Received exit signal " +  "(continuous" +  "=" + str(self.continuous) + ") :"  
-                if self.continuous == False:
-                    msg = msg + " Closing all sockets"
-                    print(msg)
-                    self.closeSockets()
-                    self.sender.sendReset()
-                    return
-                else:
-                    msg = msg + " Closing only learner socket (so we are ready for a new session)"
-                    print(msg)
-                    self.closeLearnerSocket()
-                    self.establishConnectionWithLearner()
-            else:
-                print("*****")
-                if sender.isFlags(input1):
-                    seqNr = self.receiveNumber()
-                    ackNr = self.receiveNumber()
-                    payload = self.receiveInput()[1:-1]
-                    print(("send packet: " +input1 + " " + str(seqNr) + " " + str(ackNr)))
-                    response = sender.sendInput(input1, seqNr, ackNr, payload);
-                elif "sendAction" in dir(self.sender) and self.sender.isAction(input1):
-                    print(("send action: " +input1))
-                    input1 = input1.lower().replace("\n","")
-                    try:
-                        response = sender.sendAction(input1) # response might arrive before sender is ready
-                    except Exception as e: 
-                        print(str(e))
-                        response = "BROKENPIPE"
-                elif input1 == "nil":
-                    print("send nothing (nil)"))
-                    response = sender.captureResponse()
-                else:
-                    self.fault("invalid input " + input1)
-                
-                if response is not None:
-                    print('received ' + response.__str__() + "\n")
-                    self.sendOutput(response.__str__())
-                else:
-                    print("received timeout")
-                    self.sendOutput("timeout")
 
-    # sends a string to the learner, and simply adds a newline to denote the end of the string
+            match(input1):
+                case "reset":            
+                    print("Received reset signal.")
+                    self.sender.sendReset()
+                case "exit":
+                    msg = "Received exit signal " +  "(continuous" +  "=" + str(self.continuous) + ") :"  
+                    if self.continuous == False:
+                        msg = msg + " Closing all sockets"
+                        print(msg)
+                        self.closeSockets()
+                        self.sender.sendReset()
+                        return
+                    else:
+                        msg = msg + " Closing only learner socket (so we are ready for a new session)"
+                        print(msg)
+                        self.closeLearnerSocket()
+                        self.establishConnectionWithLearner()
+                case _:
+                    parseInput(input1)                    
+            
+
+
+    def parseInput(self, str: input):
+        """Parses the input string and takes the corresponding action"""
+
+        if sender.isFlags(input1):
+            seqNr = self.receiveNumber()
+            ackNr = self.receiveNumber()
+            payload = self.receiveInput()[1:-1]
+            print(("send packet: " +input1 + " " + str(seqNr) + " " + str(ackNr)))
+            response = sender.sendInput(input1, seqNr, ackNr, payload);
+        elif "sendAction" in dir(self.sender) and self.sender.isAction(input1):
+            # TODO this functionality seems to pertain to sending actions to the SUTAdapter, but that's been split off to a different file.
+            print(("send action: " +input1))
+            input1 = input1.lower().replace("\n","")
+            try:
+                response = sender.sendAction(input1) # response might arrive before sender is ready
+            except Exception as e: 
+                print(str(e))
+                response = "BROKENPIPE"
+        elif input1 == "nil":
+            # TODO in what case is this used?
+            print("send nothing (nil)")
+            response = sender.captureResponse()
+        else:
+            self.fault("invalid input " + input1)
+        
+        if response is not None:
+            print('received ' + response.__str__() + "\n")
+            self.sendOutput(response.__str__())
+        else:
+            print("received timeout")
+            self.sendOutput("timeout")
+
     def sendOutput(self, outputString):
+        """Sends a string to the learner, adds a newline as a delimiter"""
+
         self.learnerSocket.send(outputString + "\n")
     
-    # print( error message, closes sockets and terminates)
     def fault(self, msg):
+        """Handles faults and closes sockets"""
+
         print('===FAULT EXIT WITH MESSAGE===')
         print(msg)
         self.closeSockets()
         sys.exit()
     
-    # start adapter by list
-    def startAdapter(self, sender):
+    def start(self, sender):
+        """Starts the socket, waits for a connection and tries to read input"""
+
         print("listening on "+str(self.socketIP) + ":" +str(self.socketPort))
         signal.getsignal(signal.SIGINT)
-        self.setUpSocket(self.socketPort)
-        self.establishConnectionWithLearner()
+        self.listen(self.socketPort)
+        self.accept()
         self.handleInput(sender)
 
