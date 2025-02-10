@@ -7,7 +7,7 @@ import sys
 import signal
 
 
-class learnerSocket:
+class LearnerSocket:
     """This class allows access to the functions from sender.py via sockets. It is used to communicate with the learner"""
 
     learnerSocket = None
@@ -194,7 +194,7 @@ class learnerSocket:
     def sendOutput(self, outputString):
         """Sends a string to the learner, adds a newline as a delimiter"""
 
-        self.learnerSocket.send(outputString + "\n")
+        self.learnerSocket.send((outputString + "\n").encode())
     
     def fault(self, msg):
         """Handles faults and closes sockets"""
