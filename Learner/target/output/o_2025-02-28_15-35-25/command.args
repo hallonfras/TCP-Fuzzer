@@ -1,0 +1,7 @@
+state-fuzzer-server
+-tcpMapperAddress
+127.0.0.1:18200
+-connect
+127.0.0.1:18200
+-alphabet
+resources/default_alphabet.xml

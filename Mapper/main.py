@@ -1,6 +1,7 @@
-__author__ = 'paul,ramon'
+__author__ = 'paul,ramon,isaac'
 import signal
-from builder import Builder
+import argparse
+from new_builder import Builder
 
 """
    listens on a port for actions, packet strings or reset, forwards them to the sender component,
@@ -18,17 +19,24 @@ from builder import Builder
 """
 
 
-global adapter
-adapter = None
+global learnerSocket
+learnerSocket = None
 global origSigInt
 origSigInt = None
+global parser
+parser = argparse.ArgumentParser(
+                    prog='TCP-Mapper',
+                    description='TCP mapper implementation for TCP fuzzer',
+                    epilog='Further settings contained within the TOML config file')
+parser.add_argument('config_file') 
+
 
 # routine used to close the server socket, so you don't have to
 def signal_handler(sign, frame):
     signal.signal(sign, origSigInt)
     print("\n==Processing Interrupt==")
     print('You pressed Ctrl+C, meaning you want to stop the system!')
-    adapter.closeSockets()
+    learnerSocket.closeSockets()
     signal.signal(sign, signal_handler)
     
 # sets up the close server socket routine
@@ -38,17 +46,18 @@ def setupSignalHandler():
 # main method. An initial local port can be given as parameter for the program
 if __name__ == "__main__":
     print("==Preparation==")
+    args = parser.parse_args()
     origSigInt = signal.getsignal(signal.SIGINT)
     setupSignalHandler()
-    builder = Builder()
+    builder = Builder(args.config_file)
     
     print("\n==Sender Setup==")
     sender = builder.buildSender()
     print(str(sender))
 
-    print("\n==Adapter Setup=="    )
-    adapter = builder.buildAdapter()
-    print(str(adapter))
+    print("\n==LearnerSocket setup=="    )
+    learnerSocket = builder.buildLearnerSocket()
+    print(str(learnerSocket))
     
-    print("\n==Starting Adapter==")
-    adapter.startAdapter(sender)
+    print("\n==Starting LearnerSocket==")
+    learnerSocket.start(sender)

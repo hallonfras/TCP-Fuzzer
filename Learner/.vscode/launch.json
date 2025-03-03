@@ -1,0 +1,35 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Main",
+            "request": "launch",
+            "mainClass": "Main",
+            "projectName": "TCP-Learner",
+            "args": [
+                "state-fuzzer-server",
+                "-connect",
+                "127.0.0.1:18200",
+                "-alphabet",
+                "resources/default_alphabet.xml",
+                "-ceReruns",
+                "3",
+                "-depth",
+                "2",
+                "-learningAlgorithm",
+                "LSTAR",
+                "-output",
+                "output_folder2",
+                "-ros",
+                "-tcpMapperAddress",
+                "127.0.0.1:18200",
+            ],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal"
+        }
+    ]
+}

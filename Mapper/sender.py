@@ -9,6 +9,7 @@ ackVar = 0
 
 class Sender:
     """This class contains functions for creating and sending TCP packets. It communicates with the learner via the learnerSocket class"""
+
     def __init__(self, serverMAC=None, serverIP="191.168.10.1", serverPort = 7991,
              networkInterface="lo", networkInterfaceType=0, senderPort=15000, senderPortMinimum=20000,
              senderPortMaximum=40000, portNumberFile = "sn.txt", 
@@ -210,8 +211,6 @@ class Sender:
     def sendValidReset(self,seq):
         if self.resetMechanism == 0 or self.resetMechanism == 2:
             self.sendInput("R", seq, 0, '')
-            if self.useTracking == True:
-                self.tracker.clearLastResponse()
         if self.resetMechanism == 1 or self.resetMechanism == 2:
             self.sendReset()
 
@@ -220,8 +219,6 @@ class Sender:
     # can be altered, but I'd say in case learning involves many queries, use the other method.
     def sendReset(self):
         self.refreshNetworkPort()
-        if self.useTracking == True:
-            self.tracker.reset()
             
             
     def shutdown(self):
