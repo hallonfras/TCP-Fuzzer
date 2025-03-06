@@ -1,4 +1,4 @@
-from scapy.all import sr1, IP, TCP 
+from scapy.all import sr1, IP, TCP
 from response import Timeout, ConcreteResponse
 import re
 import time
@@ -12,9 +12,9 @@ class Sender:
 
     def __init__(self, serverMAC=None, serverIP="191.168.10.1", serverPort = 7991,
              networkInterface="lo", networkInterfaceType=0, senderPort=15000, senderPortMinimum=20000,
-             senderPortMaximum=40000, portNumberFile = "sn.txt", 
+             senderPortMaximum=40000, portNumberFile = "sn.txt",
              isVerbose=0, waitTime=0.02, resetMechanism=0):
-        # data on sender and server needed to send packets 
+        # data on sender and server needed to send packets
         self.serverIP = serverIP
         self.serverPort = serverPort
         self.serverMAC = serverMAC
@@ -33,8 +33,8 @@ class Sender:
 
         #set verbosity (0/1)
         self.isVerbose = isVerbose
-        
-    
+
+
     def __str__(self):
         return "Sender with parameters: " + str(self.__dict__)
 
@@ -58,7 +58,7 @@ class Sender:
             if senderPortRange == 0:
                 networkPort = self.senderPortMinimum
             else:
-                networkPort = self.senderPortMinimum + (int(line) + 1) % senderPortRange 
+                networkPort = self.senderPortMinimum + (int(line) + 1) % senderPortRange
         f.closed
         f = open(self.portNumberFile, "w")
         f.write(str(networkPort))
@@ -70,13 +70,13 @@ class Sender:
         packet = self.createPacket(flagsSet, seqNr, ackNr, '')
         response = self.sendAndRecv(packet)
         return response
-    
+
     def setServerPort(self, newPort):
         self.serverPort = newPort;
-            
+
     def setSenderPort(self, newPort):
         self.senderPort = newPort
-    
+
     # function that creates packet from data strings/integers
     def createPacket(self, tcpFlagsSet, seqNr, ackNr, payload, destIP = None, destPort = None, srcPort = None, ipFlagsSet="DF"):
         """Creates a packet from the given arguments"""
@@ -97,24 +97,24 @@ class Sender:
         flags=tcpFlagsSet)
 
         # Either we have a payload or we don't
-        p = pIP / pTCP / Raw(load=payload) if payload else pIP /pTCP 
+        p = pIP / pTCP / Raw(load=payload) if payload else pIP /pTCP
         return p
-    
+
     def sendAndRecv(self, packet, waitTime = None):
         """Sends a packet and retrieves a response"""
 
         if waitTime is None:
             waitTime = self.waitTime
-        
+
         if packet is not None:
             #todo find a more elegant way of finding the client IP?
             self.clientIP = packet[IP].src
             # consider adding the parameter: iface="ethx" if you don't receive a response. Also consider increasing the wait time
             response = sr1(packet, timeout=waitTime, iface=self.networkInterface, verbose=self.isVerbose)
-            
-            return response
 
-    # FIXME possibly refactor response.py a bit, the names are confusing    
+            return response if response else Timeout()
+
+    # FIXME possibly refactor response.py a bit, the names are confusing
     def scapyResponseParse(self, scapyResponse):
         """Extracts the relevant TCP data from the scapy response"""
 
@@ -123,7 +123,7 @@ class Sender:
         ack = scapyResponse[TCP].ack
         concreteResponse = ConcreteResponse(self.intToFlags(flags), seq, ack)
         return concreteResponse
-    
+
 
     def checkForFlag(self, x, flagPosition):
         """Checks if the TCP flag at the given position is set"""
@@ -155,10 +155,10 @@ class Sender:
         if self.checkForFlag(x, 5):
             result = result + "U"
         return result
-    
+
     def isFlags(self, inputString):
         """Checks if a given string is a valid TCP flag"""
-        
+
         isFlags = False
         matchResult = re.match("[FSRPAU]*", inputString)
         if matchResult is not None:
@@ -180,21 +180,18 @@ class Sender:
         return self.sendInput("nil", None, None, None, waitTime);
 
     # sends input over the network to the server
-    def sendInput(self, input1, seqNr, ackNr, payload, waitTime=None):
+    def sendInput(self, flags, seqNr, ackNr, payload, waitTime=None):
         if waitTime is None:
             waitTime = self.waitTime
 
         timeBefore = time.time()
-        
-        if input1 != "nil":
-            #response = self.sendPacket(input1, seqNr, ackNr)
-            ###
-            packet = self.createPacket(input1, seqNr, ackNr, payload)
-            ###
+
+        if flags != "nil":
+            packet = self.createPacket(flags, seqNr, ackNr, payload)
         else:
             packet = None
         response = self.sendAndRecv(packet, waitTime)
-        
+
         # wait a certain amount of time after sending the packet
         timeAfter = time.time()
         timeSpent = timeAfter - timeBefore
@@ -219,11 +216,10 @@ class Sender:
     # can be altered, but I'd say in case learning involves many queries, use the other method.
     def sendReset(self):
         self.refreshNetworkPort()
-            
-            
+
+
     def shutdown(self):
-        if self.useTracking == True:
-            self.tracker.stop();
+        pass
 
 # example on how to run the sender
 if __name__ == "__main__":

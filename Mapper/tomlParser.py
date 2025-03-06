@@ -22,7 +22,8 @@ class TOMLParser:
                 "type" : "object",
                 "properties": {
                     "ip": {"type": "string"},
-                    "port": {"type": "integer"}
+                    "port": {"type": "integer"},
+                    "waittime": {"type": "number"}
                 }
             }
         },

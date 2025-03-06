@@ -5,6 +5,7 @@ from select import select
 import time
 import sys
 import signal
+from response import Timeout
 
 
 class LearnerSocket:
@@ -35,14 +36,14 @@ class LearnerSocket:
         self.serverSocket.bind((self.socketIP, commPort))
         # start listening
         self.serverSocket.listen(1)
-    
+
     def accept(self):
         """Accepts a connection to the serverSocket"""
 
         (clientSocket, address) = self.serverSocket.accept()
         print("Learner connected at: " + str(address))
         self.learnerSocket = clientSocket
-        
+
     def closeSockets(self):
         """Closes all sockets, displaying eventual errors"""
 
@@ -72,7 +73,7 @@ class LearnerSocket:
             sys.exit(1)
         except KeyboardInterrupt:
             sys.exit(1)
-    
+
     def closeLearnerSocket(self):
         """Closes just the learner socket"""
         try:
@@ -82,7 +83,7 @@ class LearnerSocket:
         except IOError as e:
                 print("Error closing learner socket " + e)
 
-                    
+
     def receiveInput(self):
         """Receives input from the socket, delimited by space or newline"""
 
@@ -109,7 +110,7 @@ class LearnerSocket:
                 else:
                     inputstring = inputstring + chr(c)
         return inputstring
-    
+
     def receiveNumber(self):
         """Receives input from the socket with validation to check if it's a number"""
 
@@ -137,12 +138,14 @@ class LearnerSocket:
             seqNr = 0
             ackNr = 0
 
+
             match(input):
-                case "reset":            
+                case "reset":
                     print("Received reset signal.")
-                    self.sender.sendReset()
+                    #self.sender.sendReset()
+                    self.sendOutput("resetok")
                 case "exit":
-                    msg = "Received exit signal " +  "(continuous" +  "=" + str(self.continuous) + ") :"  
+                    msg = "Received exit signal " +  "(continuous" +  "=" + str(self.continuous) + ") :"
                     if self.continuous == False:
                         msg = msg + " Closing all sockets"
                         print(msg)
@@ -155,8 +158,8 @@ class LearnerSocket:
                         self.closeLearnerSocket()
                         self.accept()
                 case _:
-                    self.parseInput(input)                    
-            
+                    self.parseInput(input)
+
 
 
     def parseInput(self, input):
@@ -174,7 +177,7 @@ class LearnerSocket:
             input = input.lower().replace("\n","")
             try:
                 response = sender.sendAction(input) # response might arrive before sender is ready
-            except Exception as e: 
+            except Exception as e:
                 print(str(e))
                 response = "BROKENPIPE"
         elif input == "nil":
@@ -183,10 +186,10 @@ class LearnerSocket:
             response = sender.captureResponse()
         else:
             self.fault("invalid input " + input)
-        
-        if response is not None:
+
+        if type(response) is not Timeout:
             print('received ' + response.__str__() + "\n")
-            self.sendOutput(response.__str__())
+            self.sendOutput(str(response.seq) + "," + str(response.ack) + "," + str(response['TCP'].flags))
         else:
             print("received timeout")
             self.sendOutput("timeout")
@@ -195,7 +198,7 @@ class LearnerSocket:
         """Sends a string to the learner, adds a newline as a delimiter"""
 
         self.learnerSocket.send((outputString + "\n").encode())
-    
+
     def fault(self, msg):
         """Handles faults and closes sockets"""
 
@@ -203,7 +206,7 @@ class LearnerSocket:
         print(msg)
         self.closeSockets()
         sys.exit()
-    
+
     def start(self, sender):
         """Starts the socket, waits for a connection and tries to read input"""
 
@@ -212,4 +215,3 @@ class LearnerSocket:
         self.listen(self.socketPort)
         self.accept()
         self.handleInput(sender)
-

@@ -19,7 +19,7 @@ class Builder(object):
     
     def buildSender(self):
         """Builds TCP packet sender"""
-        return Sender(serverIP=self.config['SUT']['ip'], serverPort=self.config['SUT']['port'])
+        return Sender(serverIP=self.config['SUT']['ip'], serverPort=self.config['SUT']['port'], waitTime=self.config['SUT']['waittime'])
     
     # builds the actionSender as a wrapper over the original sender component
     def buildSUTSocket(self, sender):

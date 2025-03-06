@@ -1,0 +1,10 @@
+digraph g {
+
+	s0 [shape="circle" label="s0"];
+	s0 -> s0 [label="S / IP / TCP 10.88.0.2:9000 > 10.88.0.3:15000 SA"];
+	s0 -> s0 [label="A / IP / TCP 10.88.0.2:9000 > 10.88.0.3:15000 R"];
+
+__start0 [label="" shape="none" width="0" height="0"];
+__start0 -> s0;
+
+}
