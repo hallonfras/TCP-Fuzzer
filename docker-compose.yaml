@@ -1,0 +1,54 @@
+version: "3.8"
+
+services:
+  # TCP-echo server (default SUT)
+  tcp-echo:
+    image: istio/tcp-echo-server:1.1
+    container_name: SUT
+    ports:
+      - "9000:9000"
+
+  # TCP-mapper
+  mapper:
+    build:
+      context: ./mapper
+      dockerfile: Dockerfile
+    container_name: tcp-mapper
+    ports:
+      - "8080:8080"
+    depends_on:
+      - tcp-echo
+    networks:
+      - fuzzer_network
+    volumes:
+      - ./config:/config
+
+  # SSH Learner service
+  learner:
+    build:
+      context: ./learner
+      dockerfile: Dockerfile
+    container_name: tcp-learner
+    networks:
+      - fuzzer_network
+    depends_on:
+      - tcp-echo
+      - mapper
+    volumes:
+      - ./output:/app/output_folder
+      - ./config:/config
+    command: [
+      "state-fuzzer-server",
+       "-connect",
+       "mapper:8080",
+       "-alphabet",
+       "/config/alphabet.xml",
+       "-output",
+       "/app/output_folder",
+       "-tcpMapperAddress",
+       "mapper:8080"
+      ]
+
+networks:
+  fuzzer_network:
+    driver: bridge

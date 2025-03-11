@@ -1,0 +1,8 @@
+[Learner]
+ip = "127.0.0.1"
+port = 18200
+
+[SUT]
+ip = "tcp"
+port = 9000
+waittime = 0.2
