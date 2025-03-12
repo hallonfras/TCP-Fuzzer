@@ -1,4 +1,5 @@
+wheel
 scapy
-pcapy
+pcapy-ng
 impacket
 jsonschema

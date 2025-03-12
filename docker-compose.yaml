@@ -1,10 +1,10 @@
-version: "3.8"
-
 services:
   # TCP-echo server (default SUT)
   tcp-echo:
     image: istio/tcp-echo-server:1.1
     container_name: SUT
+    networks:
+      - fuzzer_network
     ports:
       - "9000:9000"
 
@@ -22,8 +22,9 @@ services:
       - fuzzer_network
     volumes:
       - ./config:/config
+    command: ["/config/mapperconfig.toml"]
 
-  # SSH Learner service
+  # TCP-Learner
   learner:
     build:
       context: ./learner

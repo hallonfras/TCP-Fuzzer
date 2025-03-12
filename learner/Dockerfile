@@ -15,4 +15,4 @@ WORKDIR /app
 COPY --from=build /app/target/TCP-Learner.jar ./TCP-Learner.jar
 COPY --from=build /app/target/lib/ ./lib/
 
-ENTRYPOINT ["java", "-cp", "./ssh-learner.jar:./lib/*", "learner.main"]
+ENTRYPOINT ["java", "-jar", "TCP-Learner.jar"]
