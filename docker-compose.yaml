@@ -14,6 +14,7 @@ services:
       context: ./mapper
       dockerfile: Dockerfile
     container_name: tcp-mapper
+    privileged: true
     ports:
       - "8080:8080"
     depends_on:
@@ -22,7 +23,7 @@ services:
       - fuzzer_network
     volumes:
       - ./config:/config
-    command: ["/config/mapperconfig.toml"]
+    command: /config/mapperconfig.toml
 
   # TCP-Learner
   learner:
@@ -41,13 +42,13 @@ services:
     command: [
       "state-fuzzer-server",
        "-connect",
-       "mapper:8080",
+       "mapper:18200",
        "-alphabet",
        "/config/alphabet.xml",
        "-output",
        "/app/output_folder",
        "-tcpMapperAddress",
-       "mapper:8080"
+       "mapper:18200",
       ]
 
 networks:
