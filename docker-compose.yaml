@@ -16,7 +16,7 @@ services:
     container_name: tcp-mapper
     privileged: true
     ports:
-      - "8080:8080"
+      - "18200:18200"
     depends_on:
       - tcp-echo
     networks:

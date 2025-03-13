@@ -1,4 +1,7 @@
 <alphabet>
     <TCPInput name="S"/>
     <TCPInput name="A"/>
+    <TCPInput name="SA"/>
+    <TCPInput name="R"/>
+    <TCPInput name="RA"/>
 </alphabet>
