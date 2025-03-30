@@ -124,6 +124,10 @@ class LearnerSocket:
     # accepts input from the learner, and process it. Sends network packets, looks at the
     # response, extracts the relevant parameters and sends them back to the learner
     def handleInput(self, sender):
+        """
+        Accepts input from the learner and sends the appopriate packet sending the received
+        response back to the learner
+        """
         self.sender = sender
 
         while (True):

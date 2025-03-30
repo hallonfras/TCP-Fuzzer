@@ -40,6 +40,8 @@ class Sender:
         return "Sender with parameters: " + str(self.__dict__)
 
     # TODO the functions pertaining to refreshing ports seem a bit odd, they read from a file. Couldn't they just increment the number instead?
+    # TODO I have changed this to select a port randomly, that could backfire if im unlucky enough to select a port which was very recently
+    # used, causing nondeterminism. I haven't run into problems yet though.
     def refreshNetworkPort(self):
         """Chooses a new port to send packets to"""
         print("previous local port: " + str(self.senderPort))
@@ -111,11 +113,9 @@ class Sender:
             waitTime = self.waitTime
 
         if packet is not None:
-            #todo find a more elegant way of finding the client IP?
             self.clientIP = packet[IP].src
             # consider adding the parameter: iface="ethx" if you don't receive a response. Also consider increasing the wait time
             response = sr1(packet, timeout=waitTime, iface=self.networkInterface, verbose=self.isVerbose)
-
 
             return response if response is not None else Timeout()
 
@@ -169,14 +169,6 @@ class Sender:
         if matchResult is not None:
             isFlags = matchResult.group(0) == inputString
         return isFlags
-
-    # TODO Why is both this and the tracker included
-    def sniffPackets(self):
-        sniffedPackets = sniff(lfilter=lambda x: IP in x and x[IP].src == self.serverIP and
-                                                 TCP in x and x[TCP].dport == self.senderPort,
-                               timeout=self.waitTime)
-        print('sniffed')
-        return sniffedPackets
 
     # TODO When is this needed?
     def captureResponse(self, waitTime=None):
