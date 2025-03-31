@@ -48,6 +48,10 @@ services:
        "/app/output_folder",
        "-tcpMapperAddress",
        "mapper:18200",
+       "-memQueryRetries",
+       "4",
+       "-memQueryRuns",
+       "3",
       ]
 
 networks:
