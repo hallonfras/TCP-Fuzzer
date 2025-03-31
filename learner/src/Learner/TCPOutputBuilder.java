@@ -11,9 +11,6 @@ public class TCPOutputBuilder extends OutputBuilder<TCPOutput> {
 
     @Override
     public TCPOutput buildOutputExact(String name) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException(
-            "Unimplemented method 'getMapperConfig'"
-        );
+        return new TCPOutput(name);
     }
 }
