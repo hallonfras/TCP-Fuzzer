@@ -23,7 +23,6 @@ services:
       - fuzzer_network
     volumes:
       - ./config:/config
-    command: /config/mapperconfig.toml
 
   # TCP-Learner
   learner:
