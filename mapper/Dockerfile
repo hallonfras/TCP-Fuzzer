@@ -15,4 +15,4 @@ RUN chmod +x ./start.sh
 RUN pip3 install -r requirements.txt
 
 
-ENTRYPOINT ./start.sh
+ENTRYPOINT sh start.sh
