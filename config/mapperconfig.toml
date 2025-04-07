@@ -5,4 +5,4 @@ port = 18200
 [SUT]
 ip = "SUT"
 port = 9000
-waittime = 0.2
+waittime = 0.3
