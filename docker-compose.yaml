@@ -49,9 +49,9 @@ services:
        "-tcpMapperAddress",
        "mapper:18200",
        "-memQueryRetries",
-       "4",
+       "7",
        "-memQueryRuns",
-       "3",
+       "5",
       ]
 
 networks:

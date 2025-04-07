@@ -6,6 +6,4 @@
     <TCPInput name="RA"/>
     <TCPInput name="F"/>
     <TCPInput name="FA"/>
-    <TCPInput name="P"/>
-    <TCPInput name="PA"/>
 </alphabet>

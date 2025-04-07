@@ -130,10 +130,20 @@ public class TCPMapperSul
             // Split the returned packet (it has format "seq,ack,flags")
             String[] split = output.split(",");
 
-            // Update sequence and acknowledgement numbers in context
-            this.context.getState().setSeq(Long.parseLong(split[1]));
-            this.context.getState().setAck(Long.parseLong(split[0]) + 1);
+            if(split[2].contains("A")) {
+                // Update seq and ack if seq number is valid
+                this.context.getState().setSeq(Long.parseLong(split[1]));
+                this.context.getState().setAck(Long.parseLong(split[0]) + 1);
+            } else if(split[2].contains("R")) {
+                // If reset is recevied we reset sequence and acknowledgement numbers
+                this.context.getState().setSeq(0);
+                this.context.getState().setAck(0);
+            } else {
+                // otherwise we just update our ACK (since input ack is not valid)
+                this.context.getState().setAck(Long.parseLong(split[0]) + 1);
+            }
 
+            
             return new TCPOutput(
                 split[2],
                 Long.parseLong(split[0]),

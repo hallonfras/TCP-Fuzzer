@@ -1,0 +1,77 @@
+services:
+  # TCP-echo server (default SUT)
+  tcp-echo:
+    image: dockurr/macos
+    container_name: SUT
+    environment:
+      VERSION: "15"
+      RAM_SIZE: "4G"
+      CPU_CORES: "6"
+    devices:
+      - /dev/kvm
+      - /dev/net/tun
+    cap_add:
+      - NET_ADMIN
+    networks:
+      - fuzzer_network
+    ports:
+      - 8006:8006
+      - 5900:5900/tcp
+      - 5900:5900/udp
+      - 9000
+    volumes:
+      - ./macos:/storage
+    restart: always
+    stop_grace_period: 2m
+    
+  # TCP-mapper
+  mapper:
+    build:
+      context: ./mapper
+      dockerfile: Dockerfile
+    container_name: tcp-mapper
+    privileged: true
+    ports:
+      - "18200:18200"
+    depends_on:
+      - tcp-echo
+    networks:
+      - fuzzer_network
+    volumes:
+      - ./config:/config
+
+  # TCP-Learner
+  learner:
+    build:
+      context: ./learner
+      dockerfile: Dockerfile
+    container_name: tcp-learner
+    networks:
+      - fuzzer_network
+    depends_on:
+      - tcp-echo
+      - mapper
+    volumes:
+      - ./output:/app/output_folder
+      - ./config:/config
+    entrypoint: sleep infinity &
+    # command: [
+    #   "state-fuzzer-server",
+    #    "-connect",
+    #    "mapper:18200",
+    #    "-alphabet",
+    #    "/config/alphabet.xml",
+    #    "-output",
+    #    "/app/output_folder",
+    #    "-tcpMapperAddress",
+    #    "mapper:18200",
+    #    "-memQueryRetries",
+    #    "9",
+    #    "-memQueryRuns",
+    #    "7",
+    #    "-skipNonDetTests",
+    #   ]
+
+networks:
+  fuzzer_network:
+    driver: bridge

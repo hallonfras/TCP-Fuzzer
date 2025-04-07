@@ -5,6 +5,8 @@ RUN git clone https://github.com/protocol-fuzzing/protocol-state-fuzzer.git psf 
     cd psf && bash install.sh && cd ../..
 COPY pom.xml .
 COPY src ./src
+COPY startlearner.sh ./startlearner.sh
+RUN chmod +x startlearner.sh
 RUN mvn clean package
 
 
