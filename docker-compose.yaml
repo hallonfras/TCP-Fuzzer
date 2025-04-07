@@ -38,21 +38,8 @@ services:
     volumes:
       - ./output:/app/output_folder
       - ./config:/config
-    command: [
-      "state-fuzzer-server",
-       "-connect",
-       "mapper:18200",
-       "-alphabet",
-       "/config/alphabet.xml",
-       "-output",
-       "/app/output_folder",
-       "-tcpMapperAddress",
-       "mapper:18200",
-       "-memQueryRetries",
-       "7",
-       "-memQueryRuns",
-       "5",
-      ]
+    entrypoint: sleep infinity &
+    # command: "/config/learner_args"
 
 networks:
   fuzzer_network:

@@ -51,22 +51,6 @@ services:
       - ./output:/app/output_folder
       - ./config:/config
     entrypoint: sleep infinity &
-    # command: [
-    #   "state-fuzzer-server",
-    #    "-connect",
-    #    "mapper:18200",
-    #    "-alphabet",
-    #    "/config/alphabet.xml",
-    #    "-output",
-    #    "/app/output_folder",
-    #    "-tcpMapperAddress",
-    #    "mapper:18200",
-    #    "-memQueryRetries",
-    #    "9",
-    #    "-memQueryRuns",
-    #    "7",
-    #    "-skipNonDetTests",
-    #   ]
 
 networks:
   fuzzer_network:
