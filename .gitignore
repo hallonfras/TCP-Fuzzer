@@ -1,2 +1,5 @@
 # We dont need the learned outputs in the git repo
 output/
+# We dont need the windows or macos SUTs either
+windows/
+macos/

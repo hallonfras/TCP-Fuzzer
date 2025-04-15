@@ -173,7 +173,7 @@ class LearnerSocket:
             seqNr = self.receiveNumber()
             ackNr = self.receiveNumber()
             payload = self.receiveInput()[1:-1]
-            print(("send packet: " +input + " " + str(seqNr) + " " + str(ackNr)))
+            print(("send packet: " + input + " " + str(seqNr) + " " + str(ackNr)))
             response = self.sender.sendInput(input, seqNr, ackNr, payload);
         elif "sendAction" in dir(self.sender) and self.sender.isAction(input):
             # TODO this functionality seems to pertain to sending actions to the SUTAdapter, but that's been split off to a different file.
@@ -192,7 +192,7 @@ class LearnerSocket:
             self.fault("invalid input " + input)
 
         if type(response) is not Timeout:
-            print('received ' + response.__str__() + "\n")
+            print('received ' + str(response['TCP'].flags) + " " + str(response.ack) + " " + str(response.seq) + "\n")
             self.sendOutput(str(response.seq) + "," + str(response.ack) + "," + str(response['TCP'].flags))
         else:
             print("received timeout")

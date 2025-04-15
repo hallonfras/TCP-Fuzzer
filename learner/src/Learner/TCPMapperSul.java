@@ -13,6 +13,7 @@ import com.github.protocolfuzzing.protocolstatefuzzer.utils.CleanupTasks;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class TCPMapperSul
     implements
@@ -35,6 +36,9 @@ public class TCPMapperSul
 
     /** Stores the current execution */
     protected TCPExecutionContext context;
+
+    /** Stores the starting sequence number for the next sequence **/
+    protected long startSeq = ThreadLocalRandom.current().nextLong(10000, 30000);
 
     /** Stores the Mapper instance. */
     protected TCPMapper mapper;
@@ -97,7 +101,11 @@ public class TCPMapperSul
     @Override
     public void pre() {
         socketSul.reset();
-        this.context = new TCPExecutionContext(new TCPState(0, 0));
+        if(this.startSeq > Long.MAX_VALUE - 100000) {
+            this.startSeq = ThreadLocalRandom.current().nextLong(10000, 30000);
+        }
+        this.startSeq = this.startSeq + ThreadLocalRandom.current().nextInt(10000, 30000);
+        this.context = new TCPExecutionContext(new TCPState(this.startSeq, 0));
     }
 
     @Override
@@ -112,6 +120,11 @@ public class TCPMapperSul
 
     @Override
     public TCPOutput step(TCPInput in) {
+        // If we send an S or an F we technically send one bit of data
+        if(in.getName().contains("S") || in.getName().contains("F")) {
+            this.context.getState().setAck(this.context.getState().getAck() + 1);
+        }
+
         this.mapper.updateInput(in, this.context);
         String output;
         // Reset does not need seq and ack numbers
@@ -130,20 +143,20 @@ public class TCPMapperSul
             // Split the returned packet (it has format "seq,ack,flags")
             String[] split = output.split(",");
 
-            if(split[2].contains("A")) {
-                // Update seq and ack if seq number is valid
+            if (split[2].contains("R")) {
+                // If reset is recevied we reset sequence and acknowledgement numbers                
+                this.startSeq = this.startSeq + ThreadLocalRandom.current().nextInt(10000, 30000);
+                this.context.getState().setSeq(this.startSeq);
+                this.context.getState().setAck(this.startSeq + 1);
+            } else if (split[2].contains("A")) {
+                // Update seq and ack if ack number is valid
                 this.context.getState().setSeq(Long.parseLong(split[1]));
                 this.context.getState().setAck(Long.parseLong(split[0]) + 1);
-            } else if(split[2].contains("R")) {
-                // If reset is recevied we reset sequence and acknowledgement numbers
-                this.context.getState().setSeq(0);
-                this.context.getState().setAck(0);
             } else {
                 // otherwise we just update our ACK (since input ack is not valid)
                 this.context.getState().setAck(Long.parseLong(split[0]) + 1);
             }
 
-            
             return new TCPOutput(
                 split[2],
                 Long.parseLong(split[0]),

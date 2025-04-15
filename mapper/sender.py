@@ -103,7 +103,6 @@ class Sender:
 
         # Either we have a payload or we don't
         p = pIP / pTCP / Raw(load=payload) if payload else pIP / pTCP
-        print(p)
         return p
 
     def sendAndRecv(self, packet, waitTime = None):

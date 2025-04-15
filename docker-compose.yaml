@@ -38,7 +38,8 @@ services:
     volumes:
       - ./output:/app/output_folder
       - ./config:/config
-    command: "/config/learner_args"
+    entrypoint: sleep infinity &
+    # command: "/config/learner_args"
 
 networks:
   fuzzer_network:
